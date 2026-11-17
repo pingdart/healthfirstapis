@@ -1,0 +1,361 @@
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "windows", "darwin-arm64"]
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Admin {
+  id          Int      @id @default(autoincrement())
+  email       String   @unique
+  password    String
+  name        String?
+  role        String   @default("SuperAdmin") // e.g. SuperAdmin, Staff
+  permissions String?  @db.Text // Store JSON array of permitted module names
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Doctor {
+  id             Int           @id @default(autoincrement())
+  name           String
+  qualification  String
+  specialization String
+  experience     String
+  image          String?
+  timings        String?
+  bio            String?       @db.Text
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  availability   String?
+  email          String?
+  languages      String?
+  location       String?
+  phone          String?
+  gender         String?
+  consultationFee Int?         @default(500)
+  appointments   Appointment[]
+  testimonials   Testimonial[]
+}
+
+model Service {
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String   @db.Text
+  image       String?
+  details     String?  @db.Text
+  features    String?  @db.Text
+  treatments  String?  @db.Text
+  conditions  String?  @db.Text
+  faqs        String?  @db.Text
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  category    String?
+  status      String   @default("Active")
+}
+
+model Blog {
+  id        Int      @id @default(autoincrement())
+  title     String
+  content   String   @db.Text
+  imageUrl  String?
+  tags      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  author    String?
+  category  String?
+  status    String   @default("Draft")
+  views     Int      @default(0)
+}
+
+model GalleryImage {
+  id        Int      @id @default(autoincrement())
+  url       String   @db.Text
+  category  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  title     String?  @db.Text
+}
+
+model ContactInquiry {
+  id        Int      @id @default(autoincrement())
+  name      String
+  email     String
+  phone     String?
+  message   String   @db.Text
+  status    String   @default("Pending")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Appointment {
+  id            Int      @id @default(autoincrement())
+  patientName   String
+  email         String?
+  phone         String
+  doctorId      Int
+  date          String
+  timeSlot      String
+  status        String   @default("Pending")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  department    String
+  paymentStatus String   @default("Unpaid")
+  reportNote    String?  @db.Text
+  reportUrl     String?
+  paymentType   String?
+  doctor        Doctor   @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+
+  @@index([doctorId, date], map: "idx_appointment_doctor_date")
+  @@index([status], map: "idx_appointment_status")
+  @@index([phone], map: "idx_appointment_phone")
+  @@index([doctorId], map: "Appointment_doctorId_fkey")
+}
+
+model Patient {
+  id        Int      @id @default(autoincrement())
+  name      String
+  phone     String
+  email     String?
+  dob       String?
+  gender    String?
+  lastVisit String?
+  isDeleted Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model SystemSettings {
+  id              Int      @id @default(autoincrement())
+  hospitalName    String   @default("HealthFirst Care")
+  logoUrl         String?  @default("https://via.placeholder.com/150")
+  footerLogoUrl   String?  @default("https://via.placeholder.com/150")
+  address         String?  @default("Shop 2, H.No: 11-13-57, Rd Number 1, Ramakrishnapuram, Kothapet, Hyderabad, Telangana - 500035")
+  phone           String?  @default("+91 92818 62664")
+  email           String?  @default("healthfirstclinicsyd@gmail.com")
+  website         String?  @default("www.healthfirst.com")
+
+  // Hero section fields
+  heroTitle       String?  @default("Better Health Better Life")
+  heroSubtitle    String?  @db.Text
+  heroImageUrl    String?  @default("/images/hero_family.png")
+  heroBadge1Title String?  @default("Top Rated")
+  heroBadge1Sub   String?  @default("Verified Doctors")
+  heroBadge2Title String?  @default("24/7 Care")
+  heroBadge2Sub   String?  @default("Always available")
+  heroStat1       String?  @default("15+ Years of Excellence")
+  heroStat2       String?  @default("Experienced Specialists")
+
+  // Features section fields
+  features        String?  @db.Text
+
+  // Home About section fields
+  homeAboutImageUrl    String?  @default("/images/doctors_group.png")
+  homeAboutYearsValue  String?  @default("15+")
+  homeAboutHeading     String?  @default("Dedicated to Providing the Best Healthcare")
+  homeAboutDescription String?  @db.Text
+  homeAboutFeatures    String?  @db.Text
+
+  // About page fields
+  aboutHeroTitle      String?  @default("About HealthFirst")
+  aboutHeroSubtitle   String?  @db.Text
+  aboutHeroImageUrl   String?  @default("/images/about_hospital.jpg")
+  aboutMissionHeading String?  @default("Our Mission & Vision")
+  aboutMission1       String?  @db.Text
+  aboutMission2       String?  @db.Text
+  aboutStat1Value     String?  @default("50k+")
+  aboutStat1Label     String?  @default("Happy Patients")
+  aboutStat2Value     String?  @default("120+")
+  aboutStat2Label     String?  @default("Specialist Doctors")
+  aboutYearsValue     String?  @default("15+")
+  aboutValues         String?  @db.Text
+  aboutCtaHeading     String?  @default("Ready to experience the HealthFirst difference?")
+  aboutCtaSubtext     String?  @default("Schedule your visit today and let our specialists take care of you.")
+
+  // Footer fields
+  footerDescription   String?  @db.Text
+  footerFacebook      String?
+  footerTwitter       String?
+  footerInstagram     String?
+  footerLinkedin      String?
+  footerYoutube       String?
+  footerPinterest     String?
+  footerQuickLinks    String?  @db.Text
+
+  // Site Settings
+  siteMetaTitle        String?
+  siteMetaDescription  String?  @db.Text
+  siteMetaKeywords     String?  @db.Text
+  blogsMetaTitle       String?
+  blogsMetaDescription String?  @db.Text
+  contactMetaTitle     String?
+  contactMetaDescription String?  @db.Text
+  siteOgImageUrl       String?
+  googleAnalyticsId    String?
+  maintenanceMode      Boolean? @default(false)
+  maintenanceMessage   String?  @db.Text
+
+  // New SEO Settings
+  canonicalUrl                String?
+  allowIndexing               Boolean? @default(true)
+  allowFollowing              Boolean? @default(true)
+  googleSearchConsoleCode     String?
+  gtmContainerId              String?
+  clinicCity                  String?
+  clinicState                 String?
+  clinicCountry               String?
+  clinicPostalCode            String?
+  schemaMedicalClinic         Boolean? @default(true)
+  schemaPhysician             Boolean? @default(false)
+  schemaFAQ                   Boolean? @default(false)
+  schemaBreadcrumb            Boolean? @default(true)
+  schemaLocalBusiness         Boolean? @default(true)
+  sitemapUrl                  String?
+  enableSitemapGeneration     Boolean? @default(false)
+  robotsTxtContent            String?  @db.Text
+
+  // Print Settings
+  printPaperSize              String?  @default("A4")
+  printShowLogo               Boolean? @default(true)
+  printHeaderStyle            String?  @default("Modern")
+  printTerms                  String?  @db.Text
+  printPrescriptionDisclaimer String?  @db.Text
+  printInvoicePrefix          String?  @default("INV-")
+
+  // Clinic Schedule Settings
+  workingDays                 String?  @default("Monday,Tuesday,Wednesday,Thursday,Friday,Saturday")
+  openingTime                 String?  @default("09:00")
+  closingTime                 String?  @default("21:00")
+  sundayOpeningTime           String?  @default("08:00")
+  sundayClosingTime           String?  @default("13:00")
+  slotDuration                Int?     @default(15)
+  emergencyPhone              String?  // TODO: Set the 24/7 emergency contact number via Admin > Settings (must be different from main reception)
+
+  // Payment Gateways Settings
+  paymentPayAtClinic          Boolean? @default(true)
+  paymentRazorpayEnabled      Boolean? @default(false)
+  paymentRazorpayKeyId        String?
+  paymentRazorpayKeySecret    String?
+  paymentPaystackEnabled      Boolean? @default(false)
+  paymentPaystackPublicKey    String?
+  paymentPaystackSecretKey    String?
+
+  // Legal and Policies
+  termsAndConditions          String?  @db.LongText
+  privacyPolicy               String?  @db.LongText
+
+  clinicLatitude              String?
+  clinicLongitude             String?
+
+  updatedAt       DateTime @updatedAt
+}
+
+model PatientRegistration {
+  id                    Int      @id @default(autoincrement())
+  registrationNo        String   @unique
+  date                  String
+  fullName              String
+  gender                String
+  age                   String
+  dob                   String?
+  mobileNumber          String
+  aadhaarNo             String?
+  fatherSpouseName      String?
+  emergencyContactName  String?
+  relationship          String?
+  emergencyMobile       String?
+  address               String?  @db.Text
+  height                String?
+  weight                String?
+  bloodPressure         String?
+  bloodGroup            String?
+  temperature           String?
+  pulseRate             String?
+  spO2                  String?
+  bmi                   String?
+  notes                 String?  @db.Text
+  medicalHistory        String?  @db.Text
+  anyKnownAllergies     String?
+  currentMedications    String?
+  department            String?
+  doctorName            String?
+  visitType             String?
+  appointmentTime       String?
+  tokenNumber           String?
+  consultationFee       String?
+  paymentStatus         String?
+  doctorRecommendation  String?  @db.Text
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+}
+
+model FAQ {
+  id        Int      @id @default(autoincrement())
+  question  String   @db.Text
+  answer    String   @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Testimonial {
+  id        Int      @id @default(autoincrement())
+  name      String
+  role      String?  @default("Patient")
+  text      String   @db.Text
+  rating    Int      @default(5)
+  status    String   @default("Pending")
+  doctorId  Int?
+  doctor    Doctor?  @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([doctorId], map: "Testimonial_doctorId_fkey")
+}
+
+model HealthPackage {
+  id             Int      @id @default(autoincrement())
+  title          String
+  subtitle       String?  @db.Text
+  slug           String   @unique
+  category       String   @default("Comprehensive")
+  price          Int
+  originalPrice  Int
+  discount       String?
+  recommendedFor String?  @db.Text
+  fasting        String?  @default("10-12 hours fasting required")
+  reportTime     String?  @default("Same day delivery (6-8 hours)")
+  popular        Boolean  @default(false)
+  featured       Boolean  @default(false)
+  status         String   @default("Active")
+  testsCount     Int      @default(0)
+  testsIncluded  String?  @db.LongText
+  icon           String?  @default("HeartPulse")
+  color          String?  @default("emerald")
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+model PromoOffer {
+  id             Int      @id @default(autoincrement())
+  title          String
+  subtitle       String?  @db.Text
+  description    String?  @db.Text
+  badgeText      String?
+  couponCode     String?
+  imageUrl       String?  @db.Text
+  buttonText     String   @default("Book Appointment")
+  buttonLink     String   @default("/book-appointment")
+  startDate      String
+  endDate        String
+  isActive       Boolean  @default(true)
+  priority       Int      @default(1)
+  autoCloseDelay Int      @default(15)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+
+
